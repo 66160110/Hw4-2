@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบจัดการสินค้าคงคลัง</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-6">
+    <div class="max-w-xl mx-auto bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-2xl font-bold mb-4">ระบบจัดการสินค้าคงคลัง</h2>
+        <h3 class="text-lg font-semibold mb-2">เพิ่มสินค้าใหม่</h3>
+        <div class="space-y-2">
+            <input type="text" id="name" placeholder="ชื่อสินค้า" class="w-full p-2 border rounded">
+            <input type="number" id="price" placeholder="ราคา" class="w-full p-2 border rounded">
+            <input type="number" id="inStock" placeholder="จำนวนคงเหลือ" class="w-full p-2 border rounded">
+            <input type="text" id="category" placeholder="ประเภทสินค้า" class="w-full p-2 border rounded">
+            <input type="number" id="minStock" placeholder="จำนวนขั้นต่ำ" class="w-full p-2 border rounded">
+            <input type="number" id="totalSales" placeholder="ยอดขาย" class="w-full p-2 border rounded">
+            <button onclick="addNewProduct()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600">เพิ่มสินค้า</button>
+        </div>
+        
+        <h3 class="text-lg font-semibold mt-4">สินค้าทั้งหมด</h3>
+        <ul class="product-list list-disc pl-5"></ul>
+        
+        <h3 class="text-lg font-semibold mt-4 text-red-600">สินค้าที่ใกล้หมด</h3>
+        <ul class="low-stock list-disc pl-5"></ul>
+        
+        <h3 class="text-lg font-semibold mt-4 text-green-600">รายงานยอดขาย</h3>
+        <ul class="sales-report list-disc pl-5"></ul>
+    </div>
+    
+    <script>
+        let products = JSON.parse(localStorage.getItem('products')) || [];
+
+        function saveToLocalStorage() {
+            localStorage.setItem('products', JSON.stringify(products));
+        }
+
+        function addProduct(productData) {
+            products.push(productData);
+            saveToLocalStorage();
+            displayAllInfo();
+        }
+
+        function addNewProduct() {
+            const name = document.getElementById('name').value;
+            const price = parseFloat(document.getElementById('price').value);
+            const inStock = parseInt(document.getElementById('inStock').value);
+            const category = document.getElementById('category').value;
+            const minStock = parseInt(document.getElementById('minStock').value);
+            const totalSales = parseInt(document.getElementById('totalSales').value);
+            
+            if (!name || isNaN(price) || isNaN(inStock) || !category || isNaN(minStock) || isNaN(totalSales)) {
+                alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+                return;
+            }
+            
+            const product = {
+                id: `p${products.length + 1}`,
+                name,
+                price,
+                inStock,
+                category,
+                minStock,
+                totalSales
+            };
+            addProduct(product);
+        }
+
+        function checkLowStock() {
+            return products.filter(p => p.inStock < p.minStock);
+        }
+
+        function generateSalesReport() {
+            return products.map(p => `${p.name} - ขายแล้ว ${p.totalSales} ชิ้น`);
+        }
+
+        function displayAllInfo() {
+            const productList = document.querySelector('.product-list');
+            const lowStockList = document.querySelector('.low-stock');
+            const salesReportList = document.querySelector('.sales-report');
+            
+            productList.innerHTML = '';
+            lowStockList.innerHTML = '';
+            salesReportList.innerHTML = '';
+            
+            products.forEach(p => {
+                const li = document.createElement('li');
+                li.textContent = `${p.name} - ราคา ${p.price} บาท, คงเหลือ ${p.inStock} ชิ้น`;
+                productList.appendChild(li);
+            });
+            
+            checkLowStock().forEach(p => {
+                const li = document.createElement('li');
+                li.textContent = `${p.name} - คงเหลือ ${p.inStock}`;
+                lowStockList.appendChild(li);
+            });
+            
+            generateSalesReport().forEach(report => {
+                const li = document.createElement('li');
+                li.textContent = report;
+                salesReportList.appendChild(li);
+            });
+        }
+
+        window.onload = displayAllInfo;
+    </script>
+</body>
+</html>
